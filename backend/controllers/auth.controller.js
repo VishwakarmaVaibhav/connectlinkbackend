@@ -50,11 +50,12 @@ try {
 		const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "3d" });
 
 		res.cookie("jwt-ConnectLink", token, {
-			httpOnly: true,
-			maxAge: 3 * 24 * 60 * 60 * 1000,
-			sameSite: "strict",
-			secure: process.env.NODE_ENV === "production",
-		});
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+  maxAge: 3 * 24 * 60 * 60 * 1000,
+});
+
 
 		res.status(201).json({ message: "User registered successfully" });
 
@@ -84,11 +85,12 @@ export const login = async (req, res) => {
 
 		const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "3d" });
 		res.cookie("jwt-ConnectLink", token, {
-			httpOnly: true,
-			maxAge: 3 * 24 * 60 * 60 * 1000,
-			sameSite: "strict",
-			secure: process.env.NODE_ENV === "production",
-		});
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+  maxAge: 3 * 24 * 60 * 60 * 1000,
+});
+
 
 		res.json({ message: "Logged in successfully" });
 	} catch (error) {
