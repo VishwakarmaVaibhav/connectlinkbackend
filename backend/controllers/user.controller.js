@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import cloudinary from "../lib/cloudinary.js";
+import Post from "../models/post.model.js";
 
 export const getSuggestedConnections = async (req, res) => {
 	try {
@@ -21,6 +22,21 @@ export const getSuggestedConnections = async (req, res) => {
 		res.status(500).json({ message: "Server error" });
 	}
 };
+export const deleteProfile = async (req, res) => {
+	try {
+	  const user = await User.findByIdAndDelete(req.user._id);
+  
+	  if (!user) {
+		return res.status(404).json({ message: "User not found" });
+	  }
+  
+	  res.json({ message: "User profile deleted successfully" });
+	} catch (error) {
+	  console.error("Error deleting user profile:", error);
+	  res.status(500).json({ message: "Error deleting profile" });
+	}
+  };
+  
 
 export const getPublicProfile = async (req, res) => {
 	try {

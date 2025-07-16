@@ -62,6 +62,17 @@ const userSchema = new mongoose.Schema(
 			linkedin: { type: String, default: "" },
 			portfolio: { type: String, default: "" },
 		},
+		isEmailVerified: {
+			type: Boolean,
+			default: false,
+		  },
+		  emailVerificationToken: {
+			type: String,
+			default: null,
+		  },
+		  resetPasswordToken: String,
+resetPasswordExpires: Date,
+
 		miniProjects: [
 			{
 				title: String,

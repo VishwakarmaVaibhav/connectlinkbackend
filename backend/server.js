@@ -28,10 +28,11 @@ const __dirname = path.dirname(__filename);
 // ✅ CORS setup
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173", // use env for production
+    origin: process.env.CLIENT_URL || "http://localhost:5173", // ✅ no trailing slash
     credentials: true,
   })
 );
+
 
 // ✅ Body parsers
 app.use(express.json({ limit: "10mb" }));
