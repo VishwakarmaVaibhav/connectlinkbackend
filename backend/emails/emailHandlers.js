@@ -1,17 +1,15 @@
-import { resend, sender } from "../lib/nodemailer.js";
+import { transporter, sender } from "../lib/nodemailer.js";
 import {
 	createCommentNotificationEmailTemplate,
 	createConnectionAcceptedEmailTemplate,
 	createWelcomeEmailTemplate,
 } from "./emailTemplates.js";
 
-const formattedSender = `${sender.name} <${sender.address}>`;
-
 export const sendWelcomeEmail = async (email, name, profileUrl) => {
 	try {
 		const html = createWelcomeEmailTemplate(name, profileUrl);
-		await resend.emails.send({
-			from: formattedSender,
+		await transporter.sendMail({
+			from: sender,
 			to: email,
 			subject: "Welcome to ConnectLink",
 			html,
@@ -36,8 +34,8 @@ export const sendCommentNotificationEmail = async (
 			postUrl,
 			commentContent
 		);
-		await resend.emails.send({
-			from: formattedSender,
+		await transporter.sendMail({
+			from: sender,
 			to: recipientEmail,
 			subject: "New Comment on Your Post",
 			html,
@@ -62,20 +60,21 @@ export const sendVerificationEmail = async (email, name, verificationUrl) => {
 		<p>Best regards,<br/>The ConnectLink Team</p>
 	  </div>
 	`;
+  
 	try {
-		await resend.emails.send({
-			from: formattedSender,
-			to: email,
-			subject: "Verify Your Email for ConnectLink",
-			html,
-		});
-		console.log("✅ Verification Email sent to", email);
+	  await transporter.sendMail({
+		from: sender,
+		to: email,
+		subject: "Verify Your Email for ConnectLink",
+		html,
+	  });
+	  console.log("✅ Verification Email sent to", email);
 	} catch (error) {
-		console.error("❌ Error sending verification email:", error);
+	  console.error("❌ Error sending verification email:", error);
 	}
-};
+  };
 
-export const sendResetPasswordEmail = async (email, name, resetUrl) => {
+  export const sendResetPasswordEmail = async (email, name, resetUrl) => {
 	const html = `
 	  <h2>Hello ${name},</h2>
 	  <p>You requested to reset your password. Click below to continue:</p>
@@ -83,18 +82,16 @@ export const sendResetPasswordEmail = async (email, name, resetUrl) => {
 	  <p>This link will expire in 1 hour.</p>
 	  <p>If you didn’t request this, ignore this email.</p>
 	`;
-	try {
-		await resend.emails.send({
-			from: formattedSender,
-			to: email,
-			subject: "Reset Your ConnectLink Password",
-			html,
-		});
-		console.log("✅ Reset Password Email sent");
-	} catch (error) {
-		console.error("❌ Error sending Reset Password email:", error);
-	}
-};
+  
+	await transporter.sendMail({
+	  from: sender,
+	  to: email,
+	  subject: "Reset Your ConnectLink Password",
+	  html,
+	});
+  };
+  
+  
 
 export const sendConnectionAcceptedEmail = async (
 	senderEmail,
@@ -104,8 +101,8 @@ export const sendConnectionAcceptedEmail = async (
 ) => {
 	try {
 		const html = createConnectionAcceptedEmailTemplate(senderName, recipientName, profileUrl);
-		await resend.emails.send({
-			from: formattedSender,
+		await transporter.sendMail({
+			from: sender,
 			to: senderEmail,
 			subject: `${recipientName} accepted your connection request`,
 			html,
@@ -115,3 +112,4 @@ export const sendConnectionAcceptedEmail = async (
 		console.error("❌ Error sending Connection Accepted Email:", error);
 	}
 };
+
