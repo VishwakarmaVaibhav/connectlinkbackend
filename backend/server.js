@@ -25,14 +25,37 @@ const PORT = process.env.PORT || 5000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ CORS setup
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173", // ✅ no trailing slash
-    credentials: true,
-  })
-);
+// ✅ Trust proxy so SameSite=None; Secure cookies work behind Render's proxy
+app.set("trust proxy", 1);
 
+// ✅ Robust CORS allowing your FE + localhost, and always sending credentials
+const allowlist = [
+  process.env.CLIENT_URL,                 // e.g. https://your-frontend.vercel.app
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // allow non-browser requests (no origin) and whitelisted origins
+    if (!origin || allowlist.includes(origin)) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+}));
+
+// ✅ Preflight helper (avoids random 401 on OPTIONS)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowlist.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
 
 // ✅ Body parsers
 app.use(express.json({ limit: "10mb" }));
@@ -53,7 +76,6 @@ app.use("/api/v1/search", searchRoutes);
 // ✅ Optional: serve frontend only if deploying both frontend+backend on Render
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "/frontend/dist")));
-
   app.get("*", (req, res) => {
     res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
   });
