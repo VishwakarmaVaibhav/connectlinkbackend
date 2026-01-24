@@ -20,6 +20,13 @@ export const sender = {
 };
 
 // ✅ Debug: Verify connection on startup
+console.log("📧 Attempting SMTP Connection with config:", {
+  host: process.env.MAIL_HOST,
+  port: process.env.MAIL_PORT,
+  secure: process.env.MAIL_SECURE,
+  user: process.env.MAIL_USER ? "*****" : "MISSING",
+});
+
 transporter.verify((error, success) => {
   if (error) {
     console.error("❌ SMTP Connection Error:", error);
