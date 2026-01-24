@@ -74,11 +74,20 @@ app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/search", searchRoutes);
 
 // ✅ Optional: serve frontend only if deploying both frontend+backend on Render
+import fs from "fs";
+
+// ✅ Optional: serve frontend only if deploying both frontend+backend on Render
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"));
-  });
+  const frontendPath = path.join(__dirname, "../frontend/dist");
+
+  if (fs.existsSync(frontendPath)) {
+    app.use(express.static(frontendPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.resolve(frontendPath, "index.html"));
+    });
+  } else {
+    console.log("⚠️ Frontend build not found. Running as API only (Frontend likely on Vercel).");
+  }
 }
 
 // ✅ Start server after DB connects
