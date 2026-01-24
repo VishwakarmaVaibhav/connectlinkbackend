@@ -18,3 +18,12 @@ export const sender = {
   name: process.env.EMAIL_FROM_NAME || "ConnectLink",
   address: process.env.EMAIL_FROM || "no-reply@connectlink.com",
 };
+
+// ✅ Debug: Verify connection on startup
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ SMTP Connection Error:", error);
+  } else {
+    console.log("✅ SMTP Server Ready from:", process.env.MAIL_HOST);
+  }
+});
