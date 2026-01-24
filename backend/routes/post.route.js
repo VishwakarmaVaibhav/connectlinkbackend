@@ -13,12 +13,12 @@ import {
 
 const router = express.Router();
 
-router.get("/", protectRoute, getFeedPosts);
+router.get("/", optionalAuth, getFeedPosts);
 router.post("/create", protectRoute, createPost);
 router.delete("/delete/:id", protectRoute, deletePost);
 router.post("/:id/comment", protectRoute, createComment);
 router.post("/:id/like", protectRoute, likePost);
-router.get("/user/:username", protectRoute, getPostsByUsername);
-router.get("/:id", optionalAuth, getPostById); // NOT protectRoute
+router.get("/user/:username", optionalAuth, getPostsByUsername);
+router.get("/:id", optionalAuth, getPostById);
 
 export default router;

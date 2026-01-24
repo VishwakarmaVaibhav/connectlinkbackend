@@ -8,6 +8,16 @@ import User from "../models/user.model.js";
 // Get posts for feed
 export const getFeedPosts = async (req, res) => {
 	try {
+		// If guest, just return random posts
+		if (!req.user) {
+			const posts = await Post.aggregate([{ $sample: { size: 10 } }]);
+			const populatedPosts = await Post.populate(posts, [
+				{ path: "author", select: "name username profilePicture headline" },
+				{ path: "comments.user", select: "name profilePicture" }
+			]);
+			return res.status(200).json(populatedPosts);
+		}
+
 		const connections = req.user.connections || [];
 
 		// Get feed posts from connections + self
@@ -50,32 +60,34 @@ export const getFeedPosts = async (req, res) => {
 // Create a post
 export const createPost = async (req, res) => {
 	try {
-	  const { content, images, projectLink } = req.body;
-	  let imageUrls = [];
-  
-	  if (images && images.length > 0) {
-		for (let image of images) {
-		  const uploadedImage = await cloudinary.uploader.upload(image);
-		  imageUrls.push(uploadedImage.secure_url);
+		const { content, images, projectLink } = req.body;
+		let imageUrls = [];
+
+		if (images && images.length > 0) {
+			for (let image of images) {
+				const uploadedImage = await cloudinary.uploader.upload(image, {
+					resource_type: "auto",
+				});
+				imageUrls.push(uploadedImage.secure_url);
+			}
 		}
-	  }
-  
-	  const newPost = new Post({
-		author: req.user._id,
-		content,
-		image: imageUrls, // Store array of images
-		projectLink: projectLink || null,
-	  });
-  
-	  await newPost.save();
-  
-	  res.status(201).json(newPost);
+
+		const newPost = new Post({
+			author: req.user._id,
+			content,
+			image: imageUrls, // Store array of images
+			projectLink: projectLink || null,
+		});
+
+		await newPost.save();
+
+		res.status(201).json(newPost);
 	} catch (error) {
-	  console.error("Error in createPost controller:", error);
-	  res.status(500).json({ message: "Server error" });
+		console.error("Error in createPost controller:", error);
+		res.status(500).json({ message: "Server error" });
 	}
-  };
-  
+};
+
 // Delete a post
 export const deletePost = async (req, res) => {
 	try {
@@ -95,7 +107,7 @@ export const deletePost = async (req, res) => {
 				await cloudinary.uploader.destroy(publicId);
 			}
 		}
-		
+
 
 		await Post.findByIdAndDelete(postId);
 
@@ -131,25 +143,25 @@ export const getPostById = async (req, res) => {
 
 export const getPostsByUsername = async (req, res) => {
 	try {
-	  const { username } = req.params;
-  
-	  // Step 1: Find the user by username
-	  const user = await User.findOne({ username });
-	  if (!user) return res.status(404).json({ message: "User not found" });
-  
-	  // Step 2: Fetch all posts by user
-	  const posts = await Post.find({ author: user._id })
-		.populate("author", "name username profilePicture headline")
-		.populate("comments.user", "name profilePicture username")
-		.sort({ createdAt: -1 });
-  
-	  res.status(200).json(posts);
+		const { username } = req.params;
+
+		// Step 1: Find the user by username
+		const user = await User.findOne({ username });
+		if (!user) return res.status(404).json({ message: "User not found" });
+
+		// Step 2: Fetch all posts by user
+		const posts = await Post.find({ author: user._id })
+			.populate("author", "name username profilePicture headline")
+			.populate("comments.user", "name profilePicture username")
+			.sort({ createdAt: -1 });
+
+		res.status(200).json(posts);
 	} catch (error) {
-	  console.error("Error in getPostsByUsername:", error);
-	  res.status(500).json({ message: "Server error" });
+		console.error("Error in getPostsByUsername:", error);
+		res.status(500).json({ message: "Server error" });
 	}
-  };
-  
+};
+
 // Create a comment
 export const createComment = async (req, res) => {
 	try {
@@ -243,7 +255,7 @@ export const sharePost = async (req, res) => {
 			postId,
 			{ $push: { shares: { user: userId } } },
 			{ new: true }
-	 );
+		);
 
 		if (!post) return res.status(404).json({ message: "Post not found" });
 

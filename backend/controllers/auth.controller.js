@@ -1,9 +1,9 @@
-// controllers/auth.controller.js
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendVerificationEmail, sendResetPasswordEmail } from "../emails/emailHandlers.js";
+import { validateSignupData } from "../lib/validation.js";
 
 const isProduction = process.env.NODE_ENV === "production";
 const ALLOW_UNVERIFIED_LOGIN = process.env.ALLOW_UNVERIFIED_LOGIN === "true";
@@ -21,13 +21,18 @@ const publicUser = (u) => ({
   isEmailVerified: u.isEmailVerified,
   createdAt: u.createdAt,
   updatedAt: u.updatedAt,
+  connections: u.connections,
 });
 
 export const signup = async (req, res) => {
   try {
     const { name, username, email, password } = req.body;
-    if (!name || !username || !email || !password)
-      return res.status(400).json({ message: "All fields are required" });
+
+    // Validation
+    const { isValid, errors } = validateSignupData(req.body);
+    if (!isValid) {
+      return res.status(400).json({ message: errors.join(", ") });
+    }
 
     // Pre-check duplicates (avoid E11000 -> 500 UX)
     const [u1, u2] = await Promise.all([
@@ -79,7 +84,7 @@ export const login = async (req, res) => {
     const { usernameOrEmail, password } = req.body;
     const user = await User.findOne({
       $or: [{ email: usernameOrEmail.toLowerCase() }, { username: usernameOrEmail }]
-    });
+    }).populate("connections", "name username profilePicture headline");
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);

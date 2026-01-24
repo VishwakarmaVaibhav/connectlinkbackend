@@ -44,3 +44,29 @@ export const deleteNotification = async (req, res) => {
 		res.status(500).json({ message: "Server error" });
 	}
 };
+
+export const deleteNotifications = async (req, res) => {
+	try {
+		await Notification.deleteMany({ recipient: req.user._id });
+		res.json({ message: "All notifications deleted successfully" });
+	} catch (error) {
+		console.error("Error in deleteNotifications controller:", error);
+		res.status(500).json({ message: "Server error" });
+	}
+};
+
+export const markAllNotificationsAsRead = async (req, res) => {
+	try {
+		await Notification.updateMany({ recipient: req.user._id, read: false }, { read: true });
+		// Retrieve and return the updated notifications so the frontend can update immediately
+		const notifications = await Notification.find({ recipient: req.user._id })
+			.sort({ createdAt: -1 })
+			.populate("relatedUser", "name username profilePicture")
+			.populate("relatedPost", "content image");
+
+		res.status(200).json(notifications);
+	} catch (error) {
+		console.error("Error in markAllNotificationsAsRead controller:", error);
+		res.status(500).json({ message: "Internal server error" });
+	}
+};
