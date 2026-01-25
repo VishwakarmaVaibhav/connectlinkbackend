@@ -1,4 +1,4 @@
-import { transporter, sender } from "../lib/nodemailer.js";
+import { resend } from "../lib/resend.js";
 import {
 	createCommentNotificationEmailTemplate,
 	createConnectionAcceptedEmailTemplate,
@@ -8,11 +8,11 @@ import {
 export const sendWelcomeEmail = async (email, name, profileUrl) => {
 	try {
 		const html = createWelcomeEmailTemplate(name, profileUrl);
-		await transporter.sendMail({
-			from: sender,
+		await resend.emails.send({
+			from: "ConnectLink <onboarding@resend.dev>",
 			to: email,
 			subject: "Welcome to ConnectLink",
-			html,
+			html: html,
 		});
 		console.log("✅ Welcome Email sent");
 	} catch (error) {
@@ -34,11 +34,11 @@ export const sendCommentNotificationEmail = async (
 			postUrl,
 			commentContent
 		);
-		await transporter.sendMail({
-			from: sender,
+		await resend.emails.send({
+			from: "ConnectLink <onboarding@resend.dev>",
 			to: recipientEmail,
 			subject: "New Comment on Your Post",
-			html,
+			html: html,
 		});
 		console.log("✅ Comment Notification Email sent");
 	} catch (error) {
@@ -62,11 +62,11 @@ export const sendVerificationEmail = async (email, name, verificationUrl) => {
 	`;
   
 	try {
-	  await transporter.sendMail({
-		from: sender,
+	  await resend.emails.send({
+		from: "ConnectLink <onboarding@resend.dev>",
 		to: email,
 		subject: "Verify Your Email for ConnectLink",
-		html,
+		html: html,
 	  });
 	  console.log("✅ Verification Email sent to", email);
 	} catch (error) {
@@ -74,7 +74,7 @@ export const sendVerificationEmail = async (email, name, verificationUrl) => {
 	}
   };
 
-  export const sendResetPasswordEmail = async (email, name, resetUrl) => {
+export const sendResetPasswordEmail = async (email, name, resetUrl) => {
 	const html = `
 	  <h2>Hello ${name},</h2>
 	  <p>You requested to reset your password. Click below to continue:</p>
@@ -83,16 +83,19 @@ export const sendVerificationEmail = async (email, name, verificationUrl) => {
 	  <p>If you didn’t request this, ignore this email.</p>
 	`;
   
-	await transporter.sendMail({
-	  from: sender,
-	  to: email,
-	  subject: "Reset Your ConnectLink Password",
-	  html,
-	});
-  };
+	try {
+		await resend.emails.send({
+			from: "ConnectLink <onboarding@resend.dev>",
+			to: email,
+			subject: "Reset Your ConnectLink Password",
+			html: html,
+		});
+		console.log("✅ Reset Password Email sent");
+	} catch (error) {
+		console.error("❌ Error sending Reset Password Email:", error);
+	}
+};
   
-  
-
 export const sendConnectionAcceptedEmail = async (
 	senderEmail,
 	senderName,
@@ -101,11 +104,11 @@ export const sendConnectionAcceptedEmail = async (
 ) => {
 	try {
 		const html = createConnectionAcceptedEmailTemplate(senderName, recipientName, profileUrl);
-		await transporter.sendMail({
-			from: sender,
+		await resend.emails.send({
+			from: "ConnectLink <onboarding@resend.dev>",
 			to: senderEmail,
 			subject: `${recipientName} accepted your connection request`,
-			html,
+			html: html,
 		});
 		console.log("✅ Connection Accepted Email sent");
 	} catch (error) {
