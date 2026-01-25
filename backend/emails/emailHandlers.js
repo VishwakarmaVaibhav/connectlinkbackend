@@ -5,11 +5,16 @@ import {
 	createWelcomeEmailTemplate,
 } from "./emailTemplates.js";
 
+// Use environment variables for sender or default to Resend testing domain
+const senderName = process.env.EMAIL_FROM_NAME || "ConnectLink";
+const senderEmail = process.env.EMAIL_FROM || "onboarding@resend.dev";
+const sender = `${senderName} <${senderEmail}>`;
+
 export const sendWelcomeEmail = async (email, name, profileUrl) => {
 	try {
 		const html = createWelcomeEmailTemplate(name, profileUrl);
 		await resend.emails.send({
-			from: "ConnectLink <onboarding@resend.dev>",
+			from: sender,
 			to: email,
 			subject: "Welcome to ConnectLink",
 			html: html,
@@ -35,7 +40,7 @@ export const sendCommentNotificationEmail = async (
 			commentContent
 		);
 		await resend.emails.send({
-			from: "ConnectLink <onboarding@resend.dev>",
+			from: sender,
 			to: recipientEmail,
 			subject: "New Comment on Your Post",
 			html: html,
@@ -60,19 +65,19 @@ export const sendVerificationEmail = async (email, name, verificationUrl) => {
 		<p>Best regards,<br/>The ConnectLink Team</p>
 	  </div>
 	`;
-  
+
 	try {
-	  await resend.emails.send({
-		from: "ConnectLink <onboarding@resend.dev>",
-		to: email,
-		subject: "Verify Your Email for ConnectLink",
-		html: html,
-	  });
-	  console.log("✅ Verification Email sent to", email);
+		await resend.emails.send({
+			from: sender,
+			to: email,
+			subject: "Verify Your Email for ConnectLink",
+			html: html,
+		});
+		console.log("✅ Verification Email sent to", email);
 	} catch (error) {
-	  console.error("❌ Error sending verification email:", error);
+		console.error("❌ Error sending verification email:", error);
 	}
-  };
+};
 
 export const sendResetPasswordEmail = async (email, name, resetUrl) => {
 	const html = `
@@ -82,10 +87,10 @@ export const sendResetPasswordEmail = async (email, name, resetUrl) => {
 	  <p>This link will expire in 1 hour.</p>
 	  <p>If you didn’t request this, ignore this email.</p>
 	`;
-  
+
 	try {
 		await resend.emails.send({
-			from: "ConnectLink <onboarding@resend.dev>",
+			from: sender,
 			to: email,
 			subject: "Reset Your ConnectLink Password",
 			html: html,
@@ -95,7 +100,7 @@ export const sendResetPasswordEmail = async (email, name, resetUrl) => {
 		console.error("❌ Error sending Reset Password Email:", error);
 	}
 };
-  
+
 export const sendConnectionAcceptedEmail = async (
 	senderEmail,
 	senderName,
@@ -105,7 +110,7 @@ export const sendConnectionAcceptedEmail = async (
 	try {
 		const html = createConnectionAcceptedEmailTemplate(senderName, recipientName, profileUrl);
 		await resend.emails.send({
-			from: "ConnectLink <onboarding@resend.dev>",
+			from: sender,
 			to: senderEmail,
 			subject: `${recipientName} accepted your connection request`,
 			html: html,
